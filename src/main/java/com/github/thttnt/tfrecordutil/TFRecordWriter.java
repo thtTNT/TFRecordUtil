@@ -2,13 +2,14 @@ package com.github.thttnt.tfrecordutil;
 
 import java.io.*;
 import java.util.zip.CRC32C;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * @author HaotianTu
  * create at 2023/2/6
  **/
 public class TFRecordWriter implements Closeable {
-    private BufferedOutputStream writer;
+    private OutputStream writer;
     private static int maskDelta = 0xa282ead8;
 
     private int calculateCRC(byte[] buffer, int length) {
@@ -45,7 +46,7 @@ public class TFRecordWriter implements Closeable {
         return bytes;
     }
 
-    public TFRecordWriter(String path) {
+    public TFRecordWriter(String path, boolean gzipCompression) {
         File file = new File(path);
         if (file.exists()) {
             file.delete();
@@ -53,6 +54,9 @@ public class TFRecordWriter implements Closeable {
         try {
             file.createNewFile();
             this.writer = new BufferedOutputStream(new FileOutputStream(file));
+            if (gzipCompression) {
+                this.writer = new GZIPOutputStream(this.writer);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
